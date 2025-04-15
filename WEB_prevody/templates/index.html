@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Převod měn</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Převod měn</h1>
+
+    <form method="POST">
+        <label for="z_meny">Z měny:</label>
+        <input type="text" id="z_meny" name="z_meny" required><br>
+
+        <label for="do_meny">Do měny:</label>
+        <input type="text" id="do_meny" name="do_meny" required><br>
+
+        <label for="mnozstvi">Množství:</label>
+        <input type="number" id="mnozstvi" name="mnozstvi" required><br>
+
+        <label for="kurz">Kurz:</label>
+        <input type="number" step="0.01" id="kurz" name="kurz" required><br>
+
+        <button type="submit">Provést převod</button>
+    </form>
+
+    <h2>Uložené převody:</h2>
+    <ul>
+        {% for prevod in prevody %}
+            <li>{{ prevod }}</li>
+        {% else %}
+            <li>Žádné převody zatím neprobíhaly.</li>
+        {% endfor %}
+    </ul>
+
+</body>
+</html>

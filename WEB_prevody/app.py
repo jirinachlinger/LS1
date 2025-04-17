@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from uzivatel import Uzivatel
 from prevod import Prevod
 from kurz import KurzFetcher
@@ -45,14 +45,12 @@ def index():
 
 @app.route("/convert", methods=["GET"])
 def convert():
-    # Získání hodnot z query parametru
     amount = float(request.args.get('amount'))
     from_currency = request.args.get('from')
     to_currency = request.args.get('to')
 
-    # Získání aktuálních kurzů
-    kurzy = kurz_fetcher.ziskej_kurzy()
-
+    kurzy = kurz_fetcher.ziskej_kurzy()  # Získej aktuální kurzy
+    
     if from_currency in kurzy and to_currency in kurzy:
         rate_from = kurzy[from_currency]["rate"]
         rate_to = kurzy[to_currency]["rate"]
@@ -60,6 +58,12 @@ def convert():
         return jsonify({"result": result})
     else:
         return jsonify({"error": "Invalid currencies"}), 400
+    
+@app.route("/get_currencies", methods=["GET"])
+def get_currencies():
+    kurzy = kurz_fetcher.ziskej_kurzy()  # Předpokládám, že kurz_fetcher ti vrátí slovník měn
+    currencies = list(kurzy.keys())  # Vytvoří seznam kódů měn
+    return jsonify({"currencies": currencies})
 
 
 if __name__ == "__main__":

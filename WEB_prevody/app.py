@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, jsonify
 from uzivatel import Uzivatel
 from prevod import Prevod
 from kurz import KurzFetcher
@@ -12,10 +12,7 @@ kurz_fetcher = KurzFetcher(url_api)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    # Získání aktuálních kurzů
     kurzy = kurz_fetcher.ziskej_kurzy()
-    if not kurzy:
-        kurzy = {}
 
     if request.method == "POST":
         mnozstvi = float(request.form["mnozstvi"])
@@ -24,7 +21,6 @@ def index():
 
         if z_meny in kurzy and do_meny in kurzy:
             kurz = kurzy[do_meny]["rate"] / kurzy[z_meny]["rate"]
-
             uzivatel = Uzivatel("Jan")
             prevod = Prevod(z_meny, do_meny, mnozstvi, kurz)
             uzivatel.pridej_prevod(prevod)
@@ -36,11 +32,35 @@ def index():
         else:
             return "Chyba: Měna nebyla nalezena v aktuálních kurzech."
 
-    # Načtení uložených převodů
     uloziste = Uloziste("prevody.json")
     prevody = uloziste.nacti_data()
 
+    # Získání aktuálních kurzů
+    kurzy = kurz_fetcher.ziskej_kurzy()
+    if not kurzy:
+        kurzy = {}  # Ošetření, aby kurzy nebyly None
+
     return render_template("index.html", prevody=prevody, kurzy=kurzy)
+
+
+@app.route("/convert", methods=["GET"])
+def convert():
+    # Získání hodnot z query parametru
+    amount = float(request.args.get('amount'))
+    from_currency = request.args.get('from')
+    to_currency = request.args.get('to')
+
+    # Získání aktuálních kurzů
+    kurzy = kurz_fetcher.ziskej_kurzy()
+
+    if from_currency in kurzy and to_currency in kurzy:
+        rate_from = kurzy[from_currency]["rate"]
+        rate_to = kurzy[to_currency]["rate"]
+        result = (amount / rate_from) * rate_to
+        return jsonify({"result": result})
+    else:
+        return jsonify({"error": "Invalid currencies"}), 400
+
 
 if __name__ == "__main__":
     app.run(debug=True)

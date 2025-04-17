@@ -12,17 +12,15 @@ kurz_fetcher = KurzFetcher(url_api)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    # Získání aktuálních kurzů
     kurzy = kurz_fetcher.ziskej_kurzy()
+    if not kurzy:
+        kurzy = {}
 
     if request.method == "POST":
         mnozstvi = float(request.form["mnozstvi"])
         z_meny = request.form["z_meny"]
         do_meny = request.form["do_meny"]
-
-        kurzy = kurz_fetcher.ziskej_kurzy()
-
-        if not kurzy:  # Pokud kurzy jsou None, nastavíme je na prázdný slovník
-            kurzy = {}
 
         if z_meny in kurzy and do_meny in kurzy:
             kurz = kurzy[do_meny]["rate"] / kurzy[z_meny]["rate"]
@@ -38,15 +36,11 @@ def index():
         else:
             return "Chyba: Měna nebyla nalezena v aktuálních kurzech."
 
+    # Načtení uložených převodů
     uloziste = Uloziste("prevody.json")
     prevody = uloziste.nacti_data()
 
-     # Získání aktuálních kurzů
-    kurzy = kurz_fetcher.ziskej_kurzy()
-    if not kurzy:
-        kurzy = {}  # Ošetření, aby kurzy nebyly None
-
     return render_template("index.html", prevody=prevody, kurzy=kurzy)
-    
+
 if __name__ == "__main__":
     app.run(debug=True)
